@@ -22,20 +22,12 @@ contract FlightSuretyApp {
 
     address private contractOwner;          // Account used to deploy contract
 
-    struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 updatedTimestamp;        
-        address airline;
-    }
-
-    mapping(bytes32 => Flight) private flights;
-
     FlightSuretyData FSD;
     address FSDaddress;
 
+    event AirlineRegistered(address _airline, address register);
+
     modifier requireIsOperational() {
-        
         require(true, "Contract is currently not operational");  
         _;  
     }
@@ -49,6 +41,8 @@ contract FlightSuretyApp {
     constructor(address eternalStorageUnit) public {
         contractOwner = msg.sender;
         FSDaddress = eternalStorageUnit;
+
+        FSD = FlightSuretyData(eternalStorageUnit);
     }
 
 
@@ -56,24 +50,20 @@ contract FlightSuretyApp {
         return true;  // Modify to call data contract's status
     }
   
-   /**
-    * @dev Add an airline to the registration queue
-    */   
-    function registerAirline() external pure returns(bool success, uint256 votes){
-        return (success, 0);
+   // Add an airline to the registration queue
+    function registerAirline(
+        address _airline,
+        string calldata _name
+    ) external pure {
+        FSD.registerFlight(_airline, _name);
     }
 
-
-   /**
-    * @dev Register a future flight for insuring.
-    */  
-    function registerFlight () external pure {
-
+   //Register a future flight for insuring.
+    function registerFlight(address _airline, string calldata _name) external pure {
+        
     }
     
-   /**
-    * @dev Called after oracle has updated flight status
-    */  
+   //Called after oracle has updated flight status
     function processFlightStatus(
         address airline,
         string memory flight,
@@ -86,7 +76,7 @@ contract FlightSuretyApp {
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
-        string flight,
+        string calldata flight,
         uint256 timestamp) external {
 
         uint8 index = getRandomIndex(msg.sender);
@@ -248,7 +238,8 @@ contract FlightSuretyApp {
 
 contract FlightSuretyData {
 
-    function registerAirline() external pure;
+    function registerAirline(address _airline, string _name) external view;
+    function registerFlight(address _airline, string calldata _name) external pure;
     function buy() external payable;
     function creditInsurees() external pure;
     function pay() external pure;
