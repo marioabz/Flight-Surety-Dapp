@@ -16,13 +16,7 @@ contract FlightSuretyData {
         address airlineAddress;
         uint8 position;
     }
-
-    struct Votes {
-        address airline;
-        bool vote;
-    }
-    Votes[] votes;
-
+    address[] votes;
     uint8 noRegisteredAirlines;
     uint8 approvedAirlines; //Votes by airlines
 
@@ -56,15 +50,13 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier requireFirstAirlineApproval() {
-        if(noRegisteredAirlines > 0 && noRegisteredAirlines < 4) {
-            require(airlines[msg.sender].position == 1);
-        }
+    modifier airlineIsAllowed() {
+        require(airlines[msg.sender].allowed, "This airline is not allowed to vote");
         _;
     }
 
-    modifier airlineIsAllowed() {
-        require(airlines[msg.sender].allowed, "This airline is not allowed to vote");
+    modifier hasVoted() {
+        require(airlines[msg.sender].canVote, "");
         _;
     }
 
@@ -80,11 +72,11 @@ contract FlightSuretyData {
 
     function _registerAirline(string memory _name) internal pure {
         noRegisteredAirlines++;
-        airlines[_airline] = Airline(_name, false, false, msg.sender, noRegisteredAirlines);
+        airlines[msg.sender] = Airline(_name, false, false, msg.sender, noRegisteredAirlines);
     }
 
     //Add an airline to the registration queue. Can only be called from FlightSuretyApp contract
-    function registerAirline(string calldata _name) external pure{
+    function registerAirline(string calldata _name) external pure airlineIsAllowed{
         
         if(noRegisteredAirlines > 0 && noRegisteredAirlines < 4) {
             require(airlines[msg.sender].position == 1);
@@ -92,22 +84,23 @@ contract FlightSuretyData {
         uint8 requiredApprovals = noRegisteredAirlines / 2;
         if(votes.length >= requiredApprovals) {
             cleanVotes();
-            delete votes;
             _registerAirline(_name);
         }
-
     }
 
     function cleanVotes() internal pure {
         for(uint i; i < votes.length;  i++) {
-            airlines[votes[i].airline].canVote = true;
+            airlines[votes[i]].canVote = true;
         }
+        delete votes;
     }
 
-    function voteAirline() external pure {
+    function voteAirline() external pure airlineIsAllowed hasVoted {
+        votes.push(msg.sender);
+        airlines[msg.sender].canVote = false;
     }
 
-    //uy insurance for a flight
+    //Buy insurance for a flight
     function buy() external payable {}
 
     //Credits payouts to insurees
