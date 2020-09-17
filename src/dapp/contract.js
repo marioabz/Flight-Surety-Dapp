@@ -18,7 +18,6 @@ export default class Contract {
         this.web3.eth.getAccounts((error, accts) => {
            
             this.owner = accts[0];
-
             let counter = 1;
             
             while(this.airlines.length < 5) {
@@ -34,6 +33,7 @@ export default class Contract {
     }
 
     isOperational(callback) {
+        
        let self = this;
        self.flightSuretyApp.methods
             .isOperational()

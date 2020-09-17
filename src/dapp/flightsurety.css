@@ -1,9 +1,3 @@
-body {
-    background-image: url('flight.jpg'); /* Source: iStockPhoto */
-    background-repeat: no-repeat;
-    background-size: cover;
-}
-
 .container {
     margin-top: 400px;
     background-color: #000;
