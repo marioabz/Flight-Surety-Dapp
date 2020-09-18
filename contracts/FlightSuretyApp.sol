@@ -23,9 +23,10 @@ contract FlightSuretyApp {
     address private contractOwner;          // Account used to deploy contract
 
     FlightSuretyData FSD;
-    address FSDaddress;
+    address public FSDaddress;
 
     event AirlineRegistered(address _airline, address register);
+    event AirlinesHasStaked(address _airline);
 
     modifier requireIsOperational() {
         require(true, "Contract is currently not operational");  
@@ -37,30 +38,65 @@ contract FlightSuretyApp {
         _;
     }
 
-
     constructor(address eternalStorageUnit) public {
         contractOwner = msg.sender;
         FSDaddress = eternalStorageUnit;
-
         FSD = FlightSuretyData(eternalStorageUnit);
     }
 
+    modifier hasVoted() {
+        require(FSD.canAirlineVote(msg.sender), "This airline has already voted");
+        _;
+    }
+
+    modifier airlineIsAllowed() {
+        require(FSD.IsAirlineAllowed(msg.sender), "This airline is not allowed to vote");
+        _;
+    }
 
     function isOperational()public pure returns(bool) {
         return true;  // Modify to call data contract's status
     }
   
    // Add an airline to the registration queue
-    function registerAirline(
-        address _airline,
-        string calldata _name
-    ) external pure {
-        FSD.registerFlight(_airline, _name);
+    function registerAirline(address _airline, string _name) external {
+
+        uint noRegisteredAirlines = FSD.getNoRegisteredAirlines();
+        uint requiredApprovals = noRegisteredAirlines / 2;
+
+        if(noRegisteredAirlines == 0) {
+            require(msg.sender == contractOwner, "Caller is not contract owner");
+        }
+        else if(noRegisteredAirlines > 0 && noRegisteredAirlines < 4) {
+            require(FSD.getAirlinePosition(_airline) == 1,
+            "Airlines from 1 to 4 had to be registered from airline1");
+        }
+        else if(FSD.getVotesLength() >= requiredApprovals) {
+            FSD.cleanVotes();
+        }
+        else {
+            revert("Insufficient amount of votes");
+        }
+        FSD.registerAirline(_airline, _name);
     }
 
-   //Register a future flight for insuring.
-    function registerFlight(address _airline, string calldata _name) external pure {
+    function voteAirline(address _airline) external hasVoted airlineIsAllowed {
+        FSD.voteAirline(msg.sender);
+    }
+
+    function stakeForVotingRights() external payable {
         
+        require(msg.value == 10 ether, "Payment of 10 ether is required");
+        FSDaddress.transfer(msg.value);
+        FSD.allowAfterStake(msg.sender);
+        emit AirlinesHasStaked(msg.sender);
+    }
+
+
+
+   //Register a future flight for insuring.
+    function registerFlight(address _airline, string _name) external view {
+    
     }
     
    //Called after oracle has updated flight status
@@ -69,14 +105,14 @@ contract FlightSuretyApp {
         string memory flight,
         uint256 timestamp,
         uint8 statusCode
-        ) internal pure {
+        ) internal view {
 
     }
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
-        string calldata flight,
+        string flight,
         uint256 timestamp) external {
 
         uint8 index = getRandomIndex(msg.sender);
@@ -154,8 +190,6 @@ contract FlightSuretyApp {
 
         return oracles[msg.sender].indexes;
     }
-
-
 
 
     // Called by oracle when a response is available to an outstanding request
@@ -238,10 +272,17 @@ contract FlightSuretyApp {
 
 contract FlightSuretyData {
 
-    function registerAirline(address _airline, string _name) external view;
-    function registerFlight(address _airline, string calldata _name) external pure;
+    function cleanVotes() external view;
+    function allowAfterStake(address airline) external view;
+    function getVotesLength() external view returns (uint);
+    function getAirlinePosition(address airline) external view returns(uint8);
+    function getNoRegisteredAirlines() external view returns(uint8);
+    function canAirlineVote(address airline) external view returns(bool);
+    function IsAirlineAllowed(address airline) external view returns(bool);
+    function registerAirline(address _airline, string _name) external;
+    function voteAirline(address _airline) external view;
     function buy() external payable;
-    function creditInsurees() external pure;
-    function pay() external pure;
+    function creditInsurees() external view;
+    function pay() external view;
     function fund() public payable;
 }
