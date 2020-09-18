@@ -18,7 +18,6 @@ contract FlightSuretyData {
     }
     address[] votes;
     uint8 noRegisteredAirlines;
-    uint8 approvedAirlines; //Votes by airlines
 
     mapping(address => Airline) public airlines;
 
@@ -35,7 +34,6 @@ contract FlightSuretyData {
     
     constructor() public {
         contractOwner = msg.sender;
-        approvedAirlines = 0;
         noRegisteredAirlines = 0;
     }
 
@@ -50,16 +48,6 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier airlineIsAllowed() {
-        require(airlines[msg.sender].allowed, "This airline is not allowed to vote");
-        _;
-    }
-
-    modifier hasVoted() {
-        require(airlines[msg.sender].canVote, "");
-        _;
-    }
-
     //Get operating status of contract
     function isOperational() public view returns (bool) {
         return operational;
@@ -70,44 +58,59 @@ contract FlightSuretyData {
         operational = mode;
     }
 
-    function _registerAirline(string memory _name) internal pure {
+
+    /*          Airlines functions       */
+
+    function getVotesLength() external view returns (uint){
+        return votes.length;
+    }
+
+    function allowAfterStake(address airline) external {
+        airlines[airline].allowed = true;
+        airlines[airline].canVote = true;
+    }
+
+    function voteAirline(address airline) external {
+        votes.push(airline);
+        airlines[airline].canVote = false;
+    }
+
+    function IsAirlineAllowed(address airline) external view returns(bool) {
+        return airlines[airline].allowed;
+    }
+
+    function canAirlineVote(address airline) external view returns(bool) {
+        return airlines[airline].canVote;
+    }
+
+    function getNoRegisteredAirlines() external view returns(uint8) {
+        return noRegisteredAirlines;
+    }
+
+    function getAirlinePosition(address airline) external view returns(uint8) {
+        return airlines[airline].position;
+    }
+
+    function registerAirline(address _airline, string _name) external {
         noRegisteredAirlines++;
-        airlines[msg.sender] = Airline(_name, false, false, msg.sender, noRegisteredAirlines);
+        airlines[_airline] = Airline(_name, false, false, _airline, noRegisteredAirlines);
     }
 
-    //Add an airline to the registration queue. Can only be called from FlightSuretyApp contract
-    function registerAirline(string calldata _name) external pure airlineIsAllowed{
-        
-        if(noRegisteredAirlines > 0 && noRegisteredAirlines < 4) {
-            require(airlines[msg.sender].position == 1);
-        }
-        uint8 requiredApprovals = noRegisteredAirlines / 2;
-        if(votes.length >= requiredApprovals) {
-            cleanVotes();
-            _registerAirline(_name);
-        }
-    }
-
-    function cleanVotes() internal pure {
+    function cleanVotes() external {
         for(uint i; i < votes.length;  i++) {
             airlines[votes[i]].canVote = true;
         }
         delete votes;
     }
 
-    function voteAirline() external pure airlineIsAllowed hasVoted {
-        votes.push(msg.sender);
-        airlines[msg.sender].canVote = false;
-    }
-
     //Buy insurance for a flight
     function buy() external payable {}
 
     //Credits payouts to insurees
-    function creditInsurees() external pure {}
+    function creditInsurees() external view {}
 
     // Transfers eligible payout funds to insuree
-    function pay() external pure {}
+    function pay() external view {}
 
     // Initial funding for the insurance. Unless there are too many delayed flights
     // resulting in insurance payouts, the contract should be self-sustaining
@@ -118,7 +121,7 @@ contract FlightSuretyData {
         address airline,
         string memory flight,
         uint256 timestamp
-    ) internal pure returns (bytes32) {
+    ) internal view returns (bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
