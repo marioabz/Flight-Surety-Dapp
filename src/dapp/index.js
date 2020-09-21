@@ -3,6 +3,8 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 
+let airlines = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"];
+let statusCode = [0, 10, 20, 30, 40, 50, 60];
 
 (async() => {
 
@@ -31,8 +33,22 @@ import './flightsurety.css';
 
 })();
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
 
 function display(title, description, results) {
+
+    let flights = [...Array(10)].map((_, i) => {
+        return {
+            time : new Date((new Date()).getTime() + getRandomInt(10)*9000000).toLocaleString(),
+            airline : airlines[getRandomInt(airlines.length)],
+            code : getRandomInt(7)*10,
+            registered : getRandomInt(2) === 1
+        }
+    })
+
+    console.log(flights);
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
     section.appendChild(DOM.h2(title));
