@@ -6,9 +6,12 @@ contract FlightSuretyData {
     
     using SafeMath for uint256;
 
+    // Operations variables
     address private contractOwner; // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
+    mapping(address => bool) authCallers;
 
+    // Airlines variables
     struct Airline {
         string name;
         bool allowed;
@@ -16,31 +19,47 @@ contract FlightSuretyData {
         address airlineAddress;
         uint8 position;
     }
-    address[] votes;
     uint8 noRegisteredAirlines;
-
     mapping(address => Airline) public airlines;
 
+    // Array to count votes and keep track of addresses
+    address[] votes;
+
+    // Flight variables
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
         uint256 updatedTimestamp;        
         address airline;
+        string flight;
     }
     mapping(bytes32 => Flight) private flights;
-    mapping (address => bool) authAddresses;
-    mapping(address => uint) debtUsers;
+
+    struct Insured {
+        string flight;
+        uint paidAmount;
+        uint debt;
+        bool requestForPayout;
+        address user;
+    }
+    mapping(address => Insured) policyHolders;
     
     
     constructor() public {
         contractOwner = msg.sender;
         noRegisteredAirlines = 0;
     }
+    bytes32 key;
 
     // Modifier that requires the "operational" boolean variable to be "true"
     modifier requireIsOperational() {
         require(operational, "Contract is currently not operational");
         _; 
+    }
+
+    function authorizeCaller(address newCaller) external requireContractOwner requireIsOperational{
+
+        authCallers[newCaller] = true;
     }
 
     modifier requireContractOwner() {
@@ -59,10 +78,17 @@ contract FlightSuretyData {
     }
 
 
-    /*          Airlines functions       */
+    /*                      Airlines functions                   */
+    function isFlightRegistered(bytes32 _key) external view returns(bool) {
+        return flights[_key].isRegistered;
+    }
 
     function getVotesLength() external view returns (uint){
         return votes.length;
+    }
+
+    function isAirline(address airline) external view returns (bool){
+        return airlines[airline].allowed && airlines[airline].canVote;
     }
 
     function allowAfterStake(address airline) external {
@@ -103,19 +129,22 @@ contract FlightSuretyData {
         delete votes;
     }
 
-    //Buy insurance for a flight
-    function buy() external payable {}
+    function setFlighStatusCode(uint8 statusCode) external {
 
-    //Credits payouts to insurees
-    function creditInsurees() external view {}
+        flights[key].statusCode = statusCode;
+    }
 
-    // Transfers eligible payout funds to insuree
-    function pay() external view {}
+    /*                  Flights functions                   */
 
-    // Initial funding for the insurance. Unless there are too many delayed flights
-    // resulting in insurance payouts, the contract should be self-sustaining
+    function addFlight(string flight, address airline, uint256 timestamp) external {
 
-    function fund() public payable {}
+        flights[getFlightKey(airline, flight, timestamp)] = Flight(true, 0, timestamp, airline, flight);
+    }
+
+    function getFlight(bytes32 _key) external view returns(string){
+
+        return flights[_key].flight;
+    }
 
     function getFlightKey(
         address airline,
@@ -125,8 +154,39 @@ contract FlightSuretyData {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
+    /*                      Buy insurance for a flight                      */
+    function haveInsurance(address user) external view returns(bool){
+        // if true address does exist, false otherwise
+        return policyHolders[user].user == address(0);
+    }
+
+    function buyInsurance(string flight, address user, uint amount) external {
+        // Apply modifier
+        policyHolders[user] = Insured(flight, amount, 0, false, user);
+    }
+
+    function getInsurancePayout(address user, uint8 factor) external {
+        // Apply modifier
+        policyHolders[user].debt = policyHolders[user].paidAmount * factor / 10;
+        policyHolders[user].requestForPayout = true;
+    }
+
+    function withdrawPayout(address user) external {
+
+        policyHolders[user].paidAmount = 0;
+        uint toSend = policyHolders[user].debt;
+        policyHolders[user].debt = 0;
+        policyHolders[user].requestForPayout = false;
+
+        user.transfer(toSend);
+    }
+
+    function askedForWithdraw(address user) external view returns(bool) {
+        return policyHolders[user].requestForPayout;
+    }
+    
+
     //Fallback function for funding smart contract.
     function() external payable {
-        fund();
     }
 }
