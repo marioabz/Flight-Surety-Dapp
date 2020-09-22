@@ -20,6 +20,8 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
+    uint8 private constant REINVURSEMENT_FACTOR = 15;
+
     address private contractOwner;          // Account used to deploy contract
 
     FlightSuretyData FSD;
@@ -27,6 +29,7 @@ contract FlightSuretyApp {
 
     event AirlineRegistered(address _airline, address register);
     event AirlinesHasStaked(address _airline);
+    event AirlineHasVoted(address _airline);
 
     modifier requireIsOperational() {
         require(true, "Contract is currently not operational");  
@@ -44,6 +47,11 @@ contract FlightSuretyApp {
         FSD = FlightSuretyData(eternalStorageUnit);
     }
 
+    modifier IsAirline() {
+        require(FSD.isAirline(msg.sender), "Airline not allowed or doesn't exist");
+        _;
+    }
+
     modifier hasVoted() {
         require(FSD.canAirlineVote(msg.sender), "This airline has already voted");
         _;
@@ -54,10 +62,19 @@ contract FlightSuretyApp {
         _;
     }
 
+    modifier capFlight() {
+        require(msg.value <= 1 ether, 
+        "1 Ether is the max amount of Ether you pay for a flight");
+        _;
+    }
+
     function isOperational()public pure returns(bool) {
         return true;  // Modify to call data contract's status
     }
   
+
+    /*                  Airlines functions              */
+
    // Add an airline to the registration queue
     function registerAirline(address _airline, string _name) external {
 
@@ -82,6 +99,7 @@ contract FlightSuretyApp {
 
     function voteAirline(address _airline) external hasVoted airlineIsAllowed {
         FSD.voteAirline(msg.sender);
+        emit AirlineHasVoted(_airline);
     }
 
     function stakeForVotingRights() external payable {
@@ -93,20 +111,58 @@ contract FlightSuretyApp {
     }
 
 
+    /*                          Passenger functions                         */
 
-   //Register a future flight for insuring.
-    function registerFlight(address _airline, string _name) external view {
-    
+    modifier haveInsurance() {
+        require(FSD.haveInsurance(msg.sender), "This user already has an insurance policy");
+        _;
+    }
+
+    modifier askedForWithdraw() {
+        require(FSD.askedForWithdraw(msg.sender), "User has to request a withdrawal");
+        _;
+    }
+
+    function buyInsurance(string flight) external payable capFlight haveInsurance {
+
+        // Creates Insurance register for users
+        FSDaddress.transfer(msg.value);
+        FSD.buyInsurance(flight, msg.sender, msg.value);
+    }
+
+    function getInsurancePayout() external {
+
+        require(!FSD.haveInsurance(msg.sender), "User must be registered");
+        //Credit balance to struct in mapping;
+        FSD.getInsurancePayout(msg.sender, REINVURSEMENT_FACTOR);
+    }
+
+    function withdrawPayout() external askedForWithdraw {
+
+        //Transfer Payout to user
+        FSD.withdrawPayout(msg.sender);
+    }
+
+
+    /*                  Flights functions                   */
+       //Register a future flight for insuring.
+    function registerFlight(address _airline, string _flight, uint256 timestamp) 
+    external IsAirline {
+        
+        bytes32 key = getFlightKey(_airline, _flight, timestamp);
+        require(FSD.isFlightRegistered(key), "This flight already exists");
+        FSD.addFlight(_flight, _airline, timestamp, key);
     }
     
-   //Called after oracle has updated flight status
+   // Called after oracle has updated flight status
     function processFlightStatus(
         address airline,
         string memory flight,
         uint256 timestamp,
-        uint8 statusCode
-        ) internal view {
-
+        uint8 statusCode) 
+        internal {
+        
+            FSD.setFlighStatusCode(statusCode);
     }
 
     // Generate a request for oracles to fetch flight information
@@ -125,8 +181,13 @@ contract FlightSuretyApp {
         });
 
         emit OracleRequest(index, airline, flight, timestamp);
-    } 
+    }
 
+    function getFlight(address _airline, string _flight, uint _timestamp) external {
+        
+        bytes32 key = getFlightKey(_airline, _flight, _timestamp);
+        return FSD.getFlight(key);
+    }
 
 // region ORACLE MANAGEMENT
 
@@ -138,7 +199,6 @@ contract FlightSuretyApp {
 
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
-
 
     struct Oracle {
         bool isRegistered;
@@ -171,7 +231,6 @@ contract FlightSuretyApp {
     // they fetch data and submit a response
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
 
-
     // Register an oracle with the contract
     function registerOracle() external payable {
         // Require registration fee
@@ -191,7 +250,6 @@ contract FlightSuretyApp {
         return oracles[msg.sender].indexes;
     }
 
-
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
@@ -205,7 +263,6 @@ contract FlightSuretyApp {
         ) external {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
-
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp)); 
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
 
@@ -214,6 +271,7 @@ contract FlightSuretyApp {
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
         emit OracleReport(airline, flight, timestamp, statusCode);
+
         if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
 
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
@@ -222,7 +280,6 @@ contract FlightSuretyApp {
             processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
-
 
     function getFlightKey(
         address airline,
@@ -264,25 +321,29 @@ contract FlightSuretyApp {
 
         return random;
     }
-
 // endregion
-
 }   
-
 
 contract FlightSuretyData {
 
     function cleanVotes() external view;
-    function allowAfterStake(address airline) external view;
-    function getVotesLength() external view returns (uint);
-    function getAirlinePosition(address airline) external view returns(uint8);
-    function getNoRegisteredAirlines() external view returns(uint8);
-    function canAirlineVote(address airline) external view returns(bool);
-    function IsAirlineAllowed(address airline) external view returns(bool);
-    function registerAirline(address _airline, string _name) external;
-    function voteAirline(address _airline) external view;
-    function buy() external payable;
     function creditInsurees() external view;
-    function pay() external view;
-    function fund() public payable;
+    function withdrawPayout(address user) external;
+    function getFlight(bytes32 _key) external view;
+    function voteAirline(address _airline) external view;
+    function setFlighStatusCode(uint8 statusCode) external;
+    function getVotesLength() external view returns (uint);
+    function allowAfterStake(address airline) external view;
+    function getNoRegisteredAirlines() external view returns(uint8);
+    function getInsurancePayout(address user, uint8 factor) external;
+    function isAirline(address airline) external view returns (bool);
+    function haveInsurance(address user) external view returns(bool);
+    function registerAirline(address _airline, string _name) external;
+    function askedForWithdraw(address user) external view returns(bool);
+    function canAirlineVote(address airline) external view returns(bool);
+    function isFlightRegistered(bytes32 _key) external view returns(bool);
+    function IsAirlineAllowed(address airline) external view returns(bool);
+    function buyInsurance(string flight, address user, uint amount) external;
+    function getAirlinePosition(address airline) external view returns(uint8);
+    function addFlight(string flight, address airline, uint256 timestamp, bytes32 key) external;
 }
