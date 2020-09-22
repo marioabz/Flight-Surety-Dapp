@@ -45,7 +45,7 @@ before(async () => {
   });
 
   it('can request flight status', async () => {
-    // ARRANGE
+    
     let flight = 'ND1309'; // Course number
     let timestamp = Math.floor(Date.now() / 1000);
 
@@ -54,6 +54,7 @@ before(async () => {
     // ACT
 
     truffleAssert.eventEmitted(resp, "OracleRequest", (event) => {
+      console.log("Oracle Request Event was emitted")
       emitedIdx = event.index
       return event.flight === flight
     })
@@ -91,31 +92,11 @@ before(async () => {
       sor = await config.flightSuretyApp.submitOracleResponse(acceptedOracles[i].idx, config.firstAirline, flight, timestamp, STATUS_CODE_ON_TIME, {from: acceptedOracles[i].address});
       
       if(i > 2) {
-
         truffleAssert.eventEmitted(sor, "FlightStatusInfo", (event) => {
           return event.airline === config.firstAirline
         })
       }
+
+      setTimeout(() =>{}, 300)
     }
-    
-    /*for(let a=1; a<TEST_ORACLES_COUNT; a++) {
-      // Get oracle information1x 
-      let oracleIndexes = await config.flightSuretyApp.getMyIndexes.call({ from: accounts[a]});
-
-      for(let idx=0;idx<3;idx++) {
-
-        try {
-          // Submit a response...it will only be accepted if there is an Index match
-          await config.flightSuretyApp.submitOracleResponse(oracleIndexes[idx], config.firstAirline, flight, timestamp, STATUS_CODE_ON_TIME, { from: accounts[a] });
-
-        }
-        catch(e) {
-          //console.log(e)
-          // Enable this when debugging
-          // console.log('\nError', idx, oracleIndexes[idx].toNumber(), flight, timestamp);
-        }
-
-      }
-    }*/
-
   });
