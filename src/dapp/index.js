@@ -3,9 +3,10 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 
-let airlines = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"];
-let statusCode = [0, 10, 20, 30, 40, 50, 60];
+let flights = ["FNTH-1002", "FBTM-8461", "FSTM-7059"];
 
+
+let statusCodeProb = [0,20,20,20,0,20,20,20,20,0];
 (async() => {
 
     let result = null;
@@ -18,7 +19,6 @@ let statusCode = [0, 10, 20, 30, 40, 50, 60];
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
-
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
@@ -27,7 +27,6 @@ let statusCode = [0, 10, 20, 30, 40, 50, 60];
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
-    
     });
     
 
@@ -39,16 +38,17 @@ function getRandomInt(max) {
 
 function display(title, description, results) {
 
-    let flights = [...Array(10)].map((_, i) => {
+    let _flights = [...Array(3)].map((_, i) => {
         return {
             time : new Date((new Date()).getTime() + getRandomInt(10)*9000000).toLocaleString(),
-            airline : airlines[getRandomInt(airlines.length)],
+            airline : flights[getRandomInt(flights.length)],
             code : getRandomInt(7)*10,
             registered : getRandomInt(2) === 1
         }
     })
 
-    console.log(flights);
+    console.log(_flights);
+
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
     section.appendChild(DOM.h2(title));
@@ -59,6 +59,12 @@ function display(title, description, results) {
         row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : String(result.value)));
         section.appendChild(row);
     })
+
+    let flightsDisplayer = DOM.elid("flights-displayer");
+    flights.map(flight => {
+        flightsDisplayer.appendChild(DOM.div(flight));
+    })
+
     displayDiv.append(section);
 
 }
