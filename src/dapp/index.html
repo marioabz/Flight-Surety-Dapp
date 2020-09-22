@@ -13,26 +13,28 @@
 
     <nav class="mynavbar">
         <a class="mylink" href="#">FlightSurety</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
     </nav>
 
-    <main class="mycontainer">
+    <main>
 
-        <div class="wrapper">
-            <div id="display-wrapper" class="top-20">
-            </div>
-            <div id="flights-displayer" class="top-20">
-            </div>
-        </div>
+        <div class="mycontainer">
+            <div class="controller">
+                <div id="display-wrapper" class="top-20">
+                </div>
         
-        <div class="top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+                <div class="top-20">
+                    <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+                </div>
+            </div>
+    
+            
+            <div class="flights">
+                <div id="flights-displayer" class="top-20">
+                </div>
+            </div>
+    
         </div>
-        <div id="flights" class="flights">
-        </div>
-
+       
     </main>
 
 </body>
