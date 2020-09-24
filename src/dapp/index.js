@@ -3,8 +3,14 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 
-let flights = ["FNTH-1002", "FBTM-8461", "FSTM-7059"];
+let flights = [
 
+    {flight: "FNTH-1002", timestamp: Math.floor(Date.now() / 1000)}, 
+    {flight: "FBTM-8461", timestamp: Math.floor(Date.now() / 1000)}, 
+    {flight: "FSTM-7059", timestamp: Math.floor(Date.now() / 1000)}
+];
+
+let counter = 27;
 
 let statusCodeProb = [0,20,20,20,0,20,20,20,20,0];
 (async() => {
@@ -13,23 +19,32 @@ let statusCodeProb = [0,20,20,20,0,20,20,20,20,0];
 
     let contract = new Contract('localhost', () => {
 
+        contract.getAccounts(accnts => {
+
+            flights.map((flight, idx) => {
+                flight.airline = accnts[counter + idx];
+                console.log(flight)
+            })
+        });
+
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
 
         let flightsDisplayer = DOM.elid("flights-displayer");
         flightsDisplayer.appendChild(DOM.div({className: "flight-title"}, "Scheduled Flights"));
+        
         flights.map(flight => {
-        flightsDisplayer.appendChild(DOM.div({className: 'flight'}, flight));
-        })
+            flightsDisplayer.appendChild(DOM.div({className: 'flight'}, flight.flight))
+        });
     
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
+                console.log(result)
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
@@ -41,9 +56,6 @@ let statusCodeProb = [0,20,20,20,0,20,20,20,20,0];
     
 })();
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
-}
 
 function display(title, description, results) {
 
