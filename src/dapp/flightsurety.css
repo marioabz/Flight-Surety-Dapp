@@ -30,7 +30,7 @@ body {
 .myinput{
     position: absolute;
     bottom: 0.5em;
-    left: 2em;
+    left: 3em;
     margin: 20px;
 }
 
@@ -44,7 +44,9 @@ body {
 
 .ops-viewer {
     width: 40%;
-    margin: 0 100px 0px 50px;
+    margin: 0 50px 0px 50px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .flight:hover {
@@ -54,6 +56,7 @@ body {
 
 .flight {
     font-size: 15px;
+    margin: 0;
 }
 
 .flight-title {
@@ -70,7 +73,19 @@ body {
     opacity: 0.85;
     background-color: #000;
     height: 130px;
-    margin: auto;
+    margin-bottom: 20px;
+}
+
+.register{
+    width: 100%;
+    border: none;
+    height: 40px;
+    color: #EEE;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 3px;
+    background-color: #019e3d;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0);
 }
 
 .mynavbar {
@@ -91,7 +106,7 @@ body {
 }
 
 .top-20 {
-    margin-bottom:80px;
+    margin-bottom:30px;
 }
 
 .top-30{
