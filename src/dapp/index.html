@@ -18,19 +18,27 @@
     <main>
 
         <div class="mycontainer">
-            <div class="controller">
-                <div id="display-wrapper" class="top-20">
+
+            <div class="controller-vizualizer">
+
+                <div class="controller">
+                    <div id="display-wrapper" class="top-30">
+                    </div>
+                    <div class="myinput">
+                        <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+                    </div>
                 </div>
-        
-                <div class="top-20">
-                    <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
-                </div>
+
             </div>
-    
             
-            <div class="flights">
-                <div id="flights-displayer" class="top-20">
+            <div id="info-viewer" class="ops-viewer">
+
+                <div class="flights">
+                    <div id="flights-displayer" class="top-20">
+                    </div>
                 </div>
+                <button id="register-flights" class="register"> Register Flights</button>
+            
             </div>
     
         </div>
