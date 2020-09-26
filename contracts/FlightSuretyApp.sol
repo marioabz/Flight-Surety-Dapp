@@ -32,6 +32,7 @@ contract FlightSuretyApp {
     event AirlineHasVoted(address _airline);
     event FlightRegistered(address _airline, string _name, bytes32 _key);
     event UserBoughtInsurance(address passenger, string flight);
+    event UserRequestedPayout(address passenger);
 
     modifier requireIsOperational() {
         require(true, "Contract is currently not operational");  
@@ -65,7 +66,7 @@ contract FlightSuretyApp {
     }
 
     modifier capFlight() {
-        require(msg.value <= 1 ether, 
+        require(msg.value <= 1 ether && msg.value > 0 ether, 
         "1 Ether is the max amount of Ether you pay for a flight");
         _;
     }
@@ -138,6 +139,7 @@ contract FlightSuretyApp {
         require(!FSD.haveInsurance(msg.sender), "User must be registered");
         //Credit balance to struct in mapping;
         FSD.getInsurancePayout(msg.sender, REINVURSEMENT_FACTOR);
+        emit UserRequestedPayout(msg.sender);
     }
 
     function withdrawPayout() external askedForWithdraw {
