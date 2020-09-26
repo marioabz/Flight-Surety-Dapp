@@ -31,6 +31,7 @@ contract FlightSuretyApp {
     event AirlinesHasStaked(address _airline);
     event AirlineHasVoted(address _airline);
     event FlightRegistered(address _airline, string _name, bytes32 _key);
+    event UserBoughtInsurance(address passenger, string flight);
 
     modifier requireIsOperational() {
         require(true, "Contract is currently not operational");  
@@ -129,6 +130,7 @@ contract FlightSuretyApp {
         // Creates Insurance register for users
         FSDaddress.transfer(msg.value);
         FSD.buyInsurance(flight, msg.sender, msg.value);
+        emit UserBoughtInsurance(msg.sender, flight);
     }
 
     function getInsurancePayout() external {
