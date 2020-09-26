@@ -57,4 +57,14 @@ export default class Contract {
                 callback(error, payload);
             });
     }
+
+    registerFlight(payload, callback) {
+        let self = this;
+        self.flightSuretyApp.methods
+        .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
+        .send({ from: payload.airline }, (error, result) => {
+            callback(error, payload);
+        });
+    }
+
 }
