@@ -11,6 +11,8 @@ export default class DOM {
     static h4 = (...args) => DOM.makeElement(`h4`, ...args);
     static h5 = (...args) => DOM.makeElement(`h5`, ...args);
     static header = (...args) => DOM.makeElement(`header`, ...args);
+    static select = (...args) => DOM.makeElement(`select`, ...args);
+    static option = (...args) => DOM.makeElement(`option`, ...args);
     static section = (...args) => DOM.makeElement(`section`, ...args);
     static p = (...args) => DOM.makeElement(`p`, ...args);
     static span = (...args) => DOM.makeElement(`span`, ...args);

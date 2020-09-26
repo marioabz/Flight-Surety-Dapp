@@ -23,21 +23,31 @@ let statusCodeProb = [0,20,20,20,0,20,20,20,20,0];
 
             flights.map((flight, idx) => {
                 flight.airline = accnts[counter + idx];
-                console.log(flight)
             })
         });
+
+
 
         // Read transaction
         contract.isOperational((error, result) => {
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
+        console.log(flightsDisplayer)
 
         let flightsDisplayer = DOM.elid("flights-displayer");
         flightsDisplayer.appendChild(DOM.div({className: "flight-title"}, "Scheduled Flights"));
         
         flights.map(flight => {
-            flightsDisplayer.appendChild(DOM.div({className: 'flight'}, flight.flight))
+            flightsDisplayer.appendChild(DOM.p({className: 'flight'}, flight.flight))
         });
+
+        DOM.elid('register-flights').addEventListener('click', () => {
+            flights.forEach(flight => {
+                contract.registerFlight(flight, (err, res) => {
+                    console.log(err, res, 1)
+                })
+            })
+        })
     
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
