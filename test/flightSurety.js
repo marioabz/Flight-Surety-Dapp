@@ -167,3 +167,25 @@ it('Flight should be registered by last registered airline', async () => {
         registeredFlight === flight.flight,
         true, "Airine should not be able to register another airline if it hasn't provided funding");
 })
+
+it('Passenger can buy insurance for registered flight', async () => {
+
+    let _flight;
+    let passenger = accounts[10];
+    let flight = {
+        flight: "FMTH-1025",
+    }
+    
+    let insurance = await config.flightSuretyApp.buyInsurance(flight.flight, {from: passenger})
+    
+    truffleAssert.eventEmitted(insurance, "UserBoughtInsurance", (ev) =>{
+        _flight = ev.flight;
+        return _flight === flight.flight
+    })
+
+    let userHasInsurancePolicy = await config.flightSuretyData.haveInsurance.call(passenger)
+
+    assert.equal(
+        !userHasInsurancePolicy,
+        true, "Airine should not be able to register another airline if it hasn't provided funding");
+})
