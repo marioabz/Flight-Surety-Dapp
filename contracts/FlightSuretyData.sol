@@ -137,8 +137,8 @@ contract FlightSuretyData {
     /*                  Flights functions                   */
 
     function addFlight(string flight, address airline, uint256 timestamp) external {
-
-        flights[getFlightKey(airline, flight, timestamp)] = Flight(true, 0, timestamp, airline, flight);
+        bytes32 _key = getFlightKey(airline, flight, timestamp);
+        flights[_key] = Flight(true, 0, timestamp, airline, flight);
     }
 
     function getFlight(bytes32 _key) external view returns(string){
@@ -148,7 +148,7 @@ contract FlightSuretyData {
 
     function getFlightKey(
         address airline,
-        string memory flight,
+        string flight,
         uint256 timestamp
     ) internal view returns (bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
