@@ -33,6 +33,7 @@ contract FlightSuretyApp {
     event FlightRegistered(address _airline, string _name, bytes32 _key);
     event UserBoughtInsurance(address passenger, string flight);
     event UserRequestedPayout(address passenger);
+    event UserGotPayout(address passenger);
 
     modifier requireIsOperational() {
         require(true, "Contract is currently not operational");  
@@ -146,6 +147,7 @@ contract FlightSuretyApp {
 
         //Transfer Payout to user
         FSD.withdrawPayout(msg.sender);
+        emit UserGotPayout(msg.sender);
     }
 
 
