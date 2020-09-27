@@ -179,13 +179,11 @@ it('Passenger can buy insurance for registered flight', async () => {
     let insurance = await config.flightSuretyApp.buyInsurance(flight.flight, {from: passenger, value: 1*config.weiMultiple})
     
     truffleAssert.eventEmitted(insurance, "UserBoughtInsurance", (ev) =>{
-        console.log(ev)
         _flight = ev.flight;
         return _flight === flight.flight
     })
 
     let userHasInsurancePolicy = await config.flightSuretyData.haveInsurance.call(passenger)
-    console.log(userHasInsurancePolicy)
     assert.equal(
         !userHasInsurancePolicy,
         true, "Airine should not be able to register another airline if it hasn't provided funding");
@@ -204,7 +202,7 @@ it('Passenger can request a payout', async () => {
     })
 
     let hasRequestedPayout = await config.flightSuretyData.askedForWithdraw.call(passenger)
-    console.log(hasRequestedPayout)
+
     assert.equal(
         hasRequestedPayout,
         true, "Airine should not be able to register another airline if it hasn't provided funding");
