@@ -208,3 +208,19 @@ it('Passenger can request a payout', async () => {
         true, "Airine should not be able to register another airline if it hasn't provided funding");
 })
 
+it('Passenger gets 1.5x from the original amount paid for insurance', async () => {
+
+    let passenger = accounts[10];
+    let balanceBefore = (await web3.eth.getBalance(passenger)/config.weiMultiple)
+    let payout = await config.flightSuretyApp.withdrawPayout({from: passenger})
+    
+    truffleAssert.eventEmitted(payout, "UserGotPayout", (ev) =>{
+        return ev.passenger === passenger
+    })
+    let balanceAfter = (await web3.eth.getBalance(passenger))/config.weiMultiple
+
+    assert.equal(
+        (balanceAfter-balanceBefore).toFixed(1),
+        1.5, "Airine should not be able to register another airline if it hasn't provided funding");
+})
+
