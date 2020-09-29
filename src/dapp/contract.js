@@ -92,4 +92,28 @@ export default class Contract {
         return self.FSAws.events.FlightStatusInfo({fromBlock: 0})
     }
 
+    buyInsurance(passenger, callback) {
+        let self = this;
+        self.flightSuretyApp.methods.buyInsurance(passenger.flight)
+        .send({ from: passenger.address, value: passenger.value, gas: 5500000 }, (err, res) => {
+            callback(err, res)
+        })
+    }
+
+    getInsurancePayout(passenger, callback) {
+        let self = this;
+        self.flightSuretyApp.methods.getInsurancePayout()
+        .send({ from: passenger.address, gas: 5500000 }, (err, res) => {
+            callback(err, res)
+        })
+    }
+
+    withdrawPayout(passenger, callback) {
+        let self = this;
+        self.flightSuretyApp.methods.withdrawPayout()
+        .send({ from: passenger.address, gas: 5500000 }, (err, res) => {
+            callback(err, res)
+        })
+    }
+
 }
