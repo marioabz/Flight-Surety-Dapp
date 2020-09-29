@@ -15,6 +15,11 @@ import './flightsurety.css';
             {flight: "FSTM-7059", timestamp: Math.floor(Date.now() / 1000)}
         ];
 
+        let passenger = {
+            value: 1*18,
+            address: contract.passengers[0]
+        }
+
         contract.getAccounts(accnts => {
 
             flights.map(flight => {
@@ -65,12 +70,15 @@ import './flightsurety.css';
 
         DOM.elid('flights-displayer').addEventListener('click', (res) => {
             DOM.elid('flight-number').value = res.toElement.innerText;
+            DOM.elid('the-passenger').innerHTML = res.toElement.innerText;
+            passenger.flight = res.toElement.innerText;
         })
-    
+        
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let ctr = 0;
             let flight = DOM.elid('flight-number').value;
+            
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
                 console.log(result)
@@ -78,7 +86,6 @@ import './flightsurety.css';
             });
             contract.flightInfo().on("data", (tr) => {
                 
-                console.log(ctr)
                 if(parseInt(tr.returnValues.status) === 20 && ctr > 2) {
                     DOM.elid('buy-insurance').disabled = false
                     DOM.elid('buy-insurance').style.backgroundColor = "#019e3d"
@@ -89,7 +96,21 @@ import './flightsurety.css';
         })
 
         DOM.elid('buy-insurance').addEventListener('click', (res) => {
-            DOM.elid('flight-number').value = res.toElement.innerText;
+            contract.buyInsurance(passenger, (err, res) => {
+                console.log(err, "User bought insurance for 1 Ether. Hash: " + res)
+            })
+        })
+
+        DOM.elid('req-payout').addEventListener('click', (res) => {
+            contract.getInsurancePayout(passenger, (err, res) => {
+                console.log(err, "User requested withdrawal. Hash: " + res)
+            })
+        })
+
+        DOM.elid('wd-payout').addEventListener('click', (res) => {
+            contract.withdrawPayout(passenger, (err, res) => {
+                console.log(err, "User got insurance payout. Hash: " + res)
+            })
         })
     });
 })();
