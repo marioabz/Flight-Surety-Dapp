@@ -8,7 +8,7 @@ body {
   }
 
   .mycontainer {
-    margin: 100px 300px 50px 300px;
+    margin: 100px 200px 50px 200px;
     height: 40em;
     display: flex;
     justify-content: center;
@@ -30,7 +30,7 @@ body {
 .myinput{
     position: absolute;
     bottom: 0.5em;
-    left: 3em;
+    left: 6em;
     margin: 20px;
 }
 
@@ -65,6 +65,12 @@ body {
     font-weight: bold;
 }
 
+.airline {
+    color: #666;
+    text-align: center;
+    margin: 0;
+}
+
 .flights {
     padding: 10px 0 10px 0;
     border-radius: 10px;
@@ -73,7 +79,7 @@ body {
     opacity: 0.85;
     background-color: #000;
     height: 130px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .register{
@@ -85,7 +91,21 @@ body {
     font-size: 20px;
     border-radius: 3px;
     background-color: #019e3d;
-    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0);
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.18);
+    margin-bottom: 30px;
+}
+
+.disabled{
+    width: 100%;
+    border: none;
+    height: 40px;
+    color: #EEE;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 3px;
+    background-color: #555555;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.18);
+    margin-bottom: 30px;
 }
 
 .mynavbar {
@@ -157,4 +177,8 @@ label.form {
 }
 input {
     margin-right: 30px;
+}
+
+p {
+    margin: 0;
 }
