@@ -34,6 +34,18 @@ body {
     margin: 20px;
 }
 
+.insurance{
+    width: 100%;
+    border: none;
+    height: 40px;
+    color: #EEE;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 3px;
+    background-color: #019e3d;
+    margin-bottom: 3px;
+}
+
 .controller-vizualizer{
     margin: 0 10px 10px 10px;
     width: 100%;
@@ -95,17 +107,10 @@ body {
     margin-bottom: 30px;
 }
 
-.disabled{
-    width: 100%;
-    border: none;
-    height: 40px;
-    color: #EEE;
-    cursor: pointer;
-    font-size: 20px;
-    border-radius: 3px;
-    background-color: #555555;
-    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.18);
-    margin-bottom: 30px;
+.passenger {
+    color: #666;
+    text-align: center;
+    margin: 0;
 }
 
 .mynavbar {
