@@ -59,16 +59,6 @@ before(async () => {
       return event.flight === flight
     })
 
-    // Since the Index assigned to each test account is opaque by design
-    // loop through all the accounts and for each account, all its Indexes (indices?)
-    // and submit a response. The contract will reject a submission if it was
-    // not requested so while sub-optimal, it's a good test of that feature
-    /*oracles.forEach(oracle => {
-      if(oracle.index[0].toNumber() || oracle.index[1].toNumber() || oracle.index[2].toNumber()) {
-        
-      }
-    })*/
-
     oracles.forEach(oracle => {
 
       if(oracle.index[0].toNumber() === emitedIdx.toNumber()) {
@@ -89,7 +79,13 @@ before(async () => {
 
     for(let i=0; i < acceptedOracles.length; i++) {
 
-      sor = await config.flightSuretyApp.submitOracleResponse(acceptedOracles[i].idx, config.firstAirline, flight, timestamp, STATUS_CODE_ON_TIME, {from: acceptedOracles[i].address});
+      sor = await config.flightSuretyApp.submitOracleResponse(
+          acceptedOracles[i].idx, 
+          config.firstAirline, 
+          flight, timestamp, 
+          STATUS_CODE_ON_TIME, 
+          {from: acceptedOracles[i].address}
+        );
       
       if(i > 2) {
         truffleAssert.eventEmitted(sor, "FlightStatusInfo", (event) => {
